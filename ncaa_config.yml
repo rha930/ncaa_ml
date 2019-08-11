@@ -1,0 +1,20 @@
+version: "3"
+CITIES:
+  EAST: ['Columbia', 'San Jose', 'Jacksonville', 'Des Moines']
+  WEST: ['Salt Lake City', 'Hartford', 'Tulsa', 'Des Moines']
+  MIDWEST: ['Columbus','Salt Lake City', 'Tulsa', 'Jacksonville']
+  SOUTH: ['Columbia', 'San Jose', 'Harthord', 'Columbus']
+TEAMS:
+  MIDWEST: ['North Carolina','Iona','Utah St.','Washington','Auburn','New Mexico St.',
+        'Kansas','Northeastern','Iowa St.','Ohio St.','Houston','Georgia St.',
+        'Wofford','Seton Hall','Kentucky','Abilene Christian']
+  WEST: ['Gonzaga','Prairie View A&M','Fairleigh Dickinson','Baylor','Syracuse', 'Murray St.',
+        'Marquette','Florida St.','Vermont','Buffalo','Texas Tech',
+        'Northern Kentucky', 'Florida','Nevada','Montana','Michigan', 'Arizona St.', "St. John's"]
+  SOUTH: ['Virginia','Gardner Webb','Mississippi','Oklahoma','Wisconsin','Oregon','Kansas St.',
+        'UC Irvine','Villanova',"Saint Mary's",'Purdue','Old Dominion','Cincinnati','Iowa','Tennessee','Colgate']
+MODEL_CONFIG:
+  NUM_SIMS: 100
+  RISK: 100
+DEBUG:
+  VERBOSE: true
