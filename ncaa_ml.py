@@ -2,6 +2,7 @@ import pandas as pd
 import seaborn as sns
 from sklearn import preprocessing
 #from geopy.geocoders import Nominatim
+import matplotlib
 from matplotlib import pyplot as plt
 import ncaa_utils as utils
 import numpy as np
@@ -196,15 +197,4 @@ if __name__=="__main__":
         logging.info(champ)
         num_champs.append(champ)
     champdf = pd.DataFrame(num_champs)
-
-    a = pd.value_counts(champdf[0])
-    for line in range(0,df.shape[0]): 
-        g.text(df.AdjEM[line]+0.01, df.Luck[line],  
-        df.index[line], horizontalalignment='left',  
-        size='medium', color='black', weight='semibold')
-        g = sns.scatterplot("AdjO", "AdjD", data=df,color="m")  
-    for line in range(0,df.shape[0]): 
-        g.text(df.AdjO[line]+0.01, df.AdjD[line],  
-        df.index[line], horizontalalignment='left',  
-        size='medium', color='black', weight='semibold')
-    plt.show()
+    utils.plot_df(champdf)

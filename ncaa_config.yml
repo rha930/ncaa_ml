@@ -15,7 +15,7 @@ TEAMS:
   SOUTH: ['Virginia','Gardner Webb','Mississippi','Oklahoma','Wisconsin','Oregon','Kansas St.',
         'UC Irvine','Villanova',"Saint Mary's",'Purdue','Old Dominion','Cincinnati','Iowa','Tennessee','Colgate']
 MODEL_CONFIG:
-  NUM_SIMS: 100
+  NUM_SIMS: 5
   RISK: 100
 DEBUG:
   VERBOSE: true

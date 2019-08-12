@@ -131,3 +131,17 @@ def assign_playoff_city(df):
     df.loc[(df.Region == 3) & ((df.Seed == 7) | (df.Seed ==10)), 'midrds']  = 'Anaheim'
     df.loc[(df.Region == 3) & ((df.Seed == 2) | (df.Seed ==15)),'midrds']  = 'Anaheim'
     return df
+
+def plot_df(df):
+    g = sns.scatterplot("AdjEM", "Luck", data=df,color="m")  
+    a = pd.value_counts(champdf[0])
+    for line in range(0,df.shape[0]): 
+        g.text(df.AdjEM[line]+0.01, df.Luck[line],  
+        df.index[line], horizontalalignment='left',  
+        size='medium', color='black', weight='semibold')
+    g = sns.scatterplot("AdjO", "AdjD", data=df,color="m")  
+    for line in range(0,df.shape[0]): 
+        g.text(df.AdjO[line]+0.01, df.AdjD[line],  
+        df.index[line], horizontalalignment='left',  
+        size='medium', color='black', weight='semibold')
+
