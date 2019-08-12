@@ -1,6 +1,11 @@
 import pandas
-
-def construct1stround():
+firstround = {
+        1:[[1,16],[8,9], [5,12], [4,13], [6,11], [3,14], [7,10], [2,15]],
+        2:[[1,16],[8,9], [5,12], [4,13], [6,11], [3,14], [7,10], [2,15]],
+        3:[[1,16],[8,9], [5,12], [4,13], [6,11], [3,14], [7,10], [2,15]],
+        4:[[1,16],[8,9], [5,12], [4,13], [6,11], [3,14], [7,10], [2,15]]
+        }
+def construct1stround(df):
     region = [1,2,3,4]
     for i in region:
         for j in range(len(firstround[i])):
@@ -18,7 +23,7 @@ def construct1stround():
                 team1 = df[(df.Region == 1) & (df.Seed == seeds[0])].index[0]
                 team2 = df[(df.Region == 1) & (df.Seed == seeds[1])].index[0]
             firstround[i][j] = [team1, team2]
-
+    return firstround
 
 
 def construct2ndround(winners):
@@ -30,6 +35,7 @@ def construct2ndround(winners):
             }
     return _round
 def construct3rdround(winners):
+    print(winners)
     _round = {
             1 : [winners[0],winners[1]],
             2 : [winners[2],winners[3]],

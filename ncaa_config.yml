@@ -1,9 +1,10 @@
 version: "3"
+DATA_DIR: "data"
 CITIES:
   EAST: ['Columbia', 'San Jose', 'Jacksonville', 'Des Moines']
   WEST: ['Salt Lake City', 'Hartford', 'Tulsa', 'Des Moines']
   MIDWEST: ['Columbus','Salt Lake City', 'Tulsa', 'Jacksonville']
-  SOUTH: ['Columbia', 'San Jose', 'Harthord', 'Columbus']
+  SOUTH: ['Columbia', 'San Jose', 'Hartford', 'Columbus']
 TEAMS:
   MIDWEST: ['North Carolina','Iona','Utah St.','Washington','Auburn','New Mexico St.',
         'Kansas','Northeastern','Iowa St.','Ohio St.','Houston','Georgia St.',
