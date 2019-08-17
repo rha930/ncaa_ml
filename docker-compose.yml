@@ -1,0 +1,54 @@
+version: '3.3'
+services:
+  elasticsearch:
+    hostname: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.0
+    container_name: elasticsearch
+    environment:
+      - cluster.name=es-cluster
+      - node.name=elasticsearch
+      - network.host=0.0.0.0
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+        #- "discovery.zen.ping.unicast.hosts=${ES_NODE_PREFIX}-1,${ES_NODE_PREFIX}-2,${ES_NODE_PREFIX}-3"
+      - "discovery.zen.ping.unicast.hosts=elasticsearch"
+      - discovery.zen.minimum_master_nodes=1
+      - cluster.initial_master_nodes=elasticsearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile: 65536
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - es-net
+    restart: on-failure
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.0
+    container_name: kibana
+    environment:
+      # NOTE: Kibana env vars DO NOT take the YAML dotted syntax from kibana.yml. Uppercase and underscore in place of dots.
+      - SERVER_NAME=kibana.local
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - index.blocks.read_only_allow_delete=false
+      # Logging
+      # - LOGGING_LOG_QUERIES=true
+    ports:
+      - 5601:5601
+    networks:
+      - es-net
+    restart: on-failure
+    depends_on:
+      - elasticsearch
+volumes:
+  esdata1:
+    driver: local
+  logstash:
+
+networks:
+  es-net:
+
+# https://www.elastic.co/guide/en/elasticsearch/reference/6.5/docker.html
