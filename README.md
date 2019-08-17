@@ -9,4 +9,9 @@ ncaa_ml is a fun project that uses KenPom data to generate March Madness bracket
 1.  Install requirements.txt with conda / favorite env manager.
 2.  if necessary change ncaa_config.yml for # simulations, risk
 3.  python ncaa_ml.py
+### Other Notes
+The data is scraped from [KenPom](https://www.kenpom.com) from 2002-Current Year.
+Out of respect for KenPom, I prefer not to supply the scraping script (however it is pretty easy), and the formatted data.
+It looks something like this:
+![data](https://imgur.com/koWksdN.png)
 
