@@ -12,6 +12,8 @@ from sklearn.naive_bayes import GaussianNB
 import yaml
 import logging
 import argparse
+from sklearn.utils import shuffle
+from sklearn.ensemble import RandomForestClassifier as rf
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -32,7 +34,7 @@ firstround = {
         4:[[1,16],[8,9], [5,12], [4,13], [6,11], [3,14], [7,10], [2,15]]
         }
 NUM_SIMS = config['MODEL_CONFIG']['NUM_SIMS']
-RISK_FACTOR = config['MODEL_CONFIG']['RISK']
+RISK_FACTOR = config['MODEL_CONFIG']['RANDOM_FACTOR']
 def matchupwinner(region_,roundnum, bracket = firstround):
     winners = []
     single = 0
@@ -74,7 +76,7 @@ def matchupwinner(region_,roundnum, bracket = firstround):
             """
             d = df[df.index == teams[0]].drop(columns = ['Rk','Region'])
             n = df[df.index == teams[1]].drop(columns = ['Rk','Region'])
-            if gnb.predict(d) < gnb.predict(n):
+            if clf.predict(d) < clf.predict(n):
                 #logging.info(teams[0])
                 winners.append(teams[0])
             else:
@@ -97,7 +99,7 @@ def matchupwinner(region_,roundnum, bracket = firstround):
             """
             d = df[df.index == teams[0]].drop(columns = ['Rk','Region'])
             n = df[df.index == teams[1]].drop(columns = ['Rk','Region'])
-            if gnb.predict(d) < gnb.predict(n):
+            if clf.predict(d) < clf.predict(n):
                 logging.info(teams[0])
                 winners.append(teams[0])
             else:
@@ -151,6 +153,7 @@ def preprocess(df, current = False):
     df.set_index('Team',inplace=True)
     df['Random_Bias'] = np.random.randint(low= 50, high=500, size =df.shape[0])\
             + (df.Rk)*RISK_FACTOR*1
+    df = shuffle(df)
         
     return df
 def train_data(df):
@@ -159,7 +162,9 @@ def train_data(df):
     x = df.drop(columns = 'Rk')
     y = df.Rk
     gnb.fit(x,y)
-    return gnb
+    rf_clf = rf(n_estimators=100, max_depth = 10, random_state =0)
+    rf_clf.fit(x,y)
+    return rf_clf, gnb
             
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Simulate a March Madness Bracket with GNB trained by KenPom Data')
@@ -172,9 +177,16 @@ if __name__=="__main__":
     datadf = pd.read_csv(f"{data_folder}")
     datadf = preprocess(datadf)
     df = pd.read_csv(f"data/kenpom_current_data.csv")
-    df = preprocess(df,True)
+    
+    df.Team = [x.replace('amp;M;', 'M') for x in list(df.Team)]  
+    newdf = pd.DataFrame()
+    for i in range(1,17): 
+        newdf = newdf.append(df[df.Seed == i][:4]) 
+    df = preprocess(newdf,True)
+
     # initialize model
-    gnb = train_data(datadf)
+    rf_clf, gnb = train_data(datadf)
+    clf = rf_clf
     #gnb = GaussianNB()
     #logging.info(regionalpha, region_word)
     logging.info(df)
@@ -183,7 +195,7 @@ if __name__=="__main__":
     firstround = utils.construct1stround(df)
     for i in range(1,NUM_SIMS):
         inc = i
-        df['Random_Bias'] = np.random.randint(low= 50, high=500, size =df.shape[0])
+        df['Random_Bias'] = np.random.randint(low= 100, high=1000, size =df.shape[0])
         + (df.Rk)*RISK_FACTOR*inc
         east2 = utils.construct2ndround(matchupwinner('East', roundnum = 1,bracket = firstround))
         west2 = utils.construct2ndround(matchupwinner('West', roundnum = 1, bracket = firstround)) 

@@ -1,6 +1,6 @@
 # NCAA_ML
 
-ncaa_ml is a fun project that uses KenPom data to generate March Madness brackets using gaussian naive bayes models.
+ncaa_ml is a fun project that uses KenPom data to generate March Madness brackets using GNB, RF models.
 
 - the main `ncaa_ml.py` runs a specified number of simulations.
 - choose one to fill out your bracket with.
