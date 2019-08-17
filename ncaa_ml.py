@@ -10,6 +10,7 @@ from sklearn import tree
 from sklearn.naive_bayes import GaussianNB
 import yaml
 import logging
+import argparse
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -139,7 +140,14 @@ def preprocess(df):
    
     return df
 if __name__=="__main__":
-    df = pd.read_csv(f"{DATA_DIR}/kenpomdata.csv")
+    parser = argparse.ArgumentParser(description='Simulate a March Madness Bracket with GNB trained by KenPom Data')
+    parser.add_argument('--data', dest='data_path', help='data path')
+    parser.add_argument('--plot', dest='plot', help='true or false')
+    args = parser.parse_args()
+    data_folder = args.data_path
+    plots = False
+    plots = args.plot
+    df = pd.read_csv(f"{data_folder}")
     df = preprocess(df)
     # initialize model
     gnb = GaussianNB()
@@ -197,4 +205,5 @@ if __name__=="__main__":
         logging.info(champ)
         num_champs.append(champ)
     champdf = pd.DataFrame(num_champs)
-    utils.plot_df(champdf)
+    if plots:
+        utils.plot_df(champdf)
