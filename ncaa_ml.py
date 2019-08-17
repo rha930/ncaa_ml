@@ -1,5 +1,6 @@
 import pandas as pd
 import seaborn as sns
+from collections import Counter
 from sklearn import preprocessing
 #from geopy.geocoders import Nominatim
 import matplotlib
@@ -65,12 +66,14 @@ def matchupwinner(region_,roundnum, bracket = firstround):
             teams = []
             teams.append(matchup1)
             teams.append(matchup2)
+            """
             newdf = df.drop(teams)
-            x = newdf.drop(columns = 'Rank')
-            y = newdf.Rank
+            x = newdf.drop(columns = 'Rk')
+            y = newdf.Rk
             gnb.fit(x,y)
-            d = df[df.index == teams[0]].drop(columns = 'Rank')
-            n = df[df.index == teams[1]].drop(columns = 'Rank')
+            """
+            d = df[df.index == teams[0]].drop(columns = ['Rk','Region'])
+            n = df[df.index == teams[1]].drop(columns = ['Rk','Region'])
             if gnb.predict(d) < gnb.predict(n):
                 #logging.info(teams[0])
                 winners.append(teams[0])
@@ -87,11 +90,13 @@ def matchupwinner(region_,roundnum, bracket = firstround):
             teams.append(matchup2)
             print(teams)
             newdf = df.drop(teams)
-            x = newdf.drop(columns = 'Rank')
-            y = newdf.Rank
+            """
+            x = newdf.drop(columns = 'Rk')
+            y = newdf.Rk
             gnb.fit(x,y)
-            d = df[df.index == teams[0]].drop(columns = 'Rank')
-            n = df[df.index == teams[1]].drop(columns = 'Rank')
+            """
+            d = df[df.index == teams[0]].drop(columns = ['Rk','Region'])
+            n = df[df.index == teams[1]].drop(columns = ['Rk','Region'])
             if gnb.predict(d) < gnb.predict(n):
                 logging.info(teams[0])
                 winners.append(teams[0])
@@ -102,14 +107,14 @@ def matchupwinner(region_,roundnum, bracket = firstround):
     return winners
 
 
-def preprocess(df):
+def preprocess(df, current = False):
+    """
     dfkeep = []
     for row in df.itertuples():
         team = row.Team
         if str.isnumeric(team[len(team)-1]):
             dfkeep.append(row[0])
     df = df.loc[dfkeep]
-    df.drop(columns = ['Unnamed: 0'], inplace=True) 
     school = []
     seed = []
     for row in df.itertuples():
@@ -125,20 +130,37 @@ def preprocess(df):
     df.Team_ = df.Team_.str.rstrip()
     df['Seed'] =  seed
     df.Seed = pd.to_numeric(df.Seed)
-    a = df.WL.str.split('-')
+    """
+    
+    if 'Unnamed: 0' in df.columns:
+        df.drop(columns = ['Unnamed: 0'], inplace=True) 
+    a = df["W-L"].str.split('-')
     df['Win'] = [x[0] for x in a]
     df['Loss'] = [x[1] for x in a]
-    df['Region'] = 'East'
-    df.loc[df['Team_'].isin(west), ['Region']] = 'West'
-    df.loc[df['Team_'].isin(midwest), ['Region']] = 'Midwest'   
-    df.loc[df['Team_'].isin(south), ['Region']] = 'South'   
-    df.drop(columns = ['Team', 'Conf', 'WL'],inplace=True)
-    df.set_index('Team_',inplace=True)
-    le = preprocessing.LabelEncoder()
-    le.fit(df.Region)
-    df.Region = le.transform(df.Region) 
+    if current:
+        df['Region'] = 'East'
+        df.loc[df['Team'].isin(west), ['Region']] = 'West'
+        df.loc[df['Team'].isin(midwest), ['Region']] = 'Midwest'   
+        df.loc[df['Team'].isin(south), ['Region']] = 'South'   
+        le = preprocessing.LabelEncoder()
+        le.fit(df.Region)
+        df.Region = le.transform(df.Region) 
    
+
+    df.drop(columns = ['Conf', 'W-L'],inplace=True)
+    df.set_index('Team',inplace=True)
+    df['Random_Bias'] = np.random.randint(low= 50, high=500, size =df.shape[0])\
+            + (df.Rk)*RISK_FACTOR*1
+        
     return df
+def train_data(df):
+
+    gnb = GaussianNB()
+    x = df.drop(columns = 'Rk')
+    y = df.Rk
+    gnb.fit(x,y)
+    return gnb
+            
 if __name__=="__main__":
     parser = argparse.ArgumentParser(description='Simulate a March Madness Bracket with GNB trained by KenPom Data')
     parser.add_argument('--data', dest='data_path', help='data path')
@@ -147,11 +169,13 @@ if __name__=="__main__":
     data_folder = args.data_path
     plots = False
     plots = args.plot
-    df = pd.read_csv(f"{data_folder}")
-    df = preprocess(df)
+    datadf = pd.read_csv(f"{data_folder}")
+    datadf = preprocess(datadf)
+    df = pd.read_csv(f"data/kenpom_current_data.csv")
+    df = preprocess(df,True)
     # initialize model
-    gnb = GaussianNB()
-    logging.info('East, Midwest, South, West')
+    gnb = train_data(datadf)
+    #gnb = GaussianNB()
     #logging.info(regionalpha, region_word)
     logging.info(df)
     num_champs = []
@@ -160,7 +184,7 @@ if __name__=="__main__":
     for i in range(1,NUM_SIMS):
         inc = i
         df['Random_Bias'] = np.random.randint(low= 50, high=500, size =df.shape[0])
-        + df.Rank*RISK_FACTOR*inc
+        + (df.Rk)*RISK_FACTOR*inc
         east2 = utils.construct2ndround(matchupwinner('East', roundnum = 1,bracket = firstround))
         west2 = utils.construct2ndround(matchupwinner('West', roundnum = 1, bracket = firstround)) 
         midwest2 = utils.construct2ndround(matchupwinner('Midwest', roundnum = 1, bracket = firstround)) 
@@ -203,7 +227,10 @@ if __name__=="__main__":
         champ =  matchupwinner('noregion',  roundnum =4 , bracket = final)
         logging.info('---- CHAMPION ----')
         logging.info(champ)
-        num_champs.append(champ)
-    champdf = pd.DataFrame(num_champs)
+        num_champs.append(champ[0])
+    champ_dict = Counter(num_champs)
+    a = pd.DataFrame(dict(champ_dict), index= ['wins'])
+    #champdf = pd.DataFrame(num_champs)
     if plots:
-        utils.plot_df(champdf)
+        utils.plot_df(df)
+        #sns.countplot(data=num_champs)

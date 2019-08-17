@@ -1,4 +1,6 @@
-import pandas
+from matplotlib import pyplot as plt
+import seaborn as sns
+import pandas as pd
 firstround = {
         1:[[1,16],[8,9], [5,12], [4,13], [6,11], [3,14], [7,10], [2,15]],
         2:[[1,16],[8,9], [5,12], [4,13], [6,11], [3,14], [7,10], [2,15]],
@@ -133,13 +135,14 @@ def assign_playoff_city(df):
     return df
 
 def plot_df(df):
-    g = sns.scatterplot("AdjEM", "Luck", data=df,color="m")  
-    a = pd.value_counts(champdf[0])
+    plt.figure(0)
+    g = sns.scatterplot(data=df,x="AdjEM", y="Luck",color="m")  
     for line in range(0,df.shape[0]): 
         g.text(df.AdjEM[line]+0.01, df.Luck[line],  
         df.index[line], horizontalalignment='left',  
         size='medium', color='black', weight='semibold')
-    g = sns.scatterplot("AdjO", "AdjD", data=df,color="m")  
+    plt.figure(1)
+    g = sns.scatterplot(x= "AdjO", y="AdjD", data=df,color="m")  
     for line in range(0,df.shape[0]): 
         g.text(df.AdjO[line]+0.01, df.AdjD[line],  
         df.index[line], horizontalalignment='left',  
