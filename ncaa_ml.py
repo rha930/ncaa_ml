@@ -20,7 +20,7 @@ from sklearn.ensemble import RandomForestClassifier as rf
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-with open("ncaa_config_new.yml", "r") as f:
+with open("ncaa_config.yml", "r") as f:
     config = yaml.load(f)
 DATA_DIR = config["DATA_DIR"]
 midwest = config["TEAMS"]["MIDWEST"]
@@ -144,6 +144,7 @@ def preprocess(df, current=False):
     a = df["W-L"].str.split("-")
     df["Win"] = [x[0] for x in a]
     df["Loss"] = [x[1] for x in a]
+
     if current:
         df["Region"] = "East"
         df.loc[df["Team"].isin(west), ["Region"]] = "West"
@@ -158,6 +159,8 @@ def preprocess(df, current=False):
         np.random.randint(low=50, high=500, size=df.shape[0])
         + (df.Rk) * RISK_FACTOR * 1
     )
+
+    df.Seed.replace("\*", "", regex=True, inplace=True)
     df = shuffle(df)
 
     return df
@@ -186,7 +189,7 @@ if __name__ == "__main__":
     plots = args.plot
     datadf = pd.read_csv(f"{data_folder}")
     datadf = preprocess(datadf)
-    df = pd.read_csv(f"data/kenpom_current_data_final.csv")
+    df = pd.read_csv(f"data/kenpom_current_data.csv")
     # df = pd.read_csv(f"data/kenpom_data.csv")
 
     df.Team = [x.replace("amp;M;", "M") for x in list(df.Team)]
@@ -297,13 +300,13 @@ if __name__ == "__main__":
         .rename(columns={"index": "team", 0: "count"})
     )
     if plots:
-        # utils.plot_df(df)
+        utils.plot_df(df)
 
-        compare = df[(df.index == "UCLA")]
-        print(compare)
-        compare = df[(df.index == "UCLA") | (df.index == "Alabama")]
-        print(compare)
-        utils.plot_df(compare)
+        #compare = df[(df.index == "UCLA")]
+        #print(compare)
+        #compare = df[(df.index == "UCLA") | (df.index == "Alabama")]
+        #print(compare)
+        #utils.plot_df(compare)
         plt.figure(0)
         sns.barplot(data=df_count, x="team", y="count").set(title="final")
         plt.figure(6)

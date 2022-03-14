@@ -17,7 +17,9 @@ def construct1stround(df):
     for i in region:
         for j in range(len(firstround[i])):
             seeds = firstround[i][j]
+            print("seeds", seeds)
             if i == 1:
+                print(df[(df.Region == 0) & (df.Seed == seeds[0])])
                 team1 = df[(df.Region == 0) & (df.Seed == seeds[0])].index[0]
                 team2 = df[(df.Region == 0) & (df.Seed == seeds[1])].index[0]
             if i == 4:

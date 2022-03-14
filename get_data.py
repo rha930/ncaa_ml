@@ -62,14 +62,14 @@ def format_data(soup):
 
 if __name__ == "__main__":
     kenpom_url = "https://kenpom.com"
-    page = requests.get(kenpom_url)
+    page = requests.get(kenpom_url, verify=False)
     soup = bs(page.text, "html.parser")
     links = [x.get("href") for x in soup.find_all("a")]
     yearlinks = [x for x in links if str(x)[0:13] == "/index.php?y="]
     years = [x.replace("/index.php?y=", "") for x in yearlinks]
     maindf = pd.DataFrame()
     for link in tqdm(yearlinks):
-        page = requests.get(kenpom_url + link)
+        page = requests.get(kenpom_url + link, verify=False)
         soup = bs(page.text, "html.parser")
         df = format_data(soup)
         maindf = maindf.append(df)
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     maindf.to_csv(f"{DATA_DIR}/kenpom_data.csv", index=False)
 
     kenpom_url = "https://kenpom.com"
-    page = requests.get(kenpom_url)
+    page = requests.get(kenpom_url, verify=False)
     soup = bs(page.text, "html.parser")
     # THIS YEARS 64 teams
     currentdf = format_data(soup)
@@ -87,8 +87,10 @@ if __name__ == "__main__":
     # untested
     firstfour, west, east, south, midwest = utils.get_bracket()
     import yaml
+    from yaml import Loader, Dumper
+
     with open("ncaa_config.yml") as f:
-        config = yaml.load(f)
+        config = yaml.load(f, Loader=Loader)
     # to do: replace all St or State with St.
     # fix brackets in config in which teams are in
 
@@ -97,4 +99,4 @@ if __name__ == "__main__":
     config["TEAMS"]["MIDWEST"] = midwest
     config["TEAMS"]["SOUTH"] = south
     with open("ncaa_config.yml", "w+") as f:
-        yaml.dump(f)
+        yaml.dump(config, f, Dumper=Dumper)
