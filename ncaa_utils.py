@@ -3,35 +3,27 @@ import requests
 from bs4 import BeautifulSoup as bs
 import seaborn as sns
 import pandas as pd
+import datetime
 
 firstround = {
+    0: [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]],
     1: [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]],
     2: [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]],
     3: [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]],
-    4: [[1, 16], [8, 9], [5, 12], [4, 13], [6, 11], [3, 14], [7, 10], [2, 15]],
 }
 
 
 def construct1stround(df):
-    region = [1, 2, 3, 4]
+    region = [0, 1, 2, 3]
     for i in region:
         for j in range(len(firstround[i])):
             seeds = firstround[i][j]
-            print("seeds", seeds)
-            if i == 1:
-                print(df[(df.Region == 0) & (df.Seed == seeds[0])])
-                team1 = df[(df.Region == 0) & (df.Seed == seeds[0])].index[0]
-                team2 = df[(df.Region == 0) & (df.Seed == seeds[1])].index[0]
-            if i == 4:
-                team1 = df[(df.Region == 3) & (df.Seed == seeds[0])].index[0]
-                team2 = df[(df.Region == 3) & (df.Seed == seeds[1])].index[0]
-            if i == 3:
-                team1 = df[(df.Region == 2) & (df.Seed == seeds[0])].index[0]
-                team2 = df[(df.Region == 2) & (df.Seed == seeds[1])].index[0]
-            if i == 2:
-                team1 = df[(df.Region == 1) & (df.Seed == seeds[0])].index[0]
-                team2 = df[(df.Region == 1) & (df.Seed == seeds[1])].index[0]
+            team1 = df[(df.Region == i) & (df.Seed == seeds[0])].index[0]
+            team2 = df[(df.Region == i) & (df.Seed == seeds[1])].index[0]
+            print(team1)
+            print(team2)
             firstround[i][j] = [team1, team2]
+            print(firstround)
     return firstround
 
 
@@ -46,7 +38,7 @@ def construct2ndround(winners):
 
 
 def construct3rdround(winners):
-    print(winners)
+    # print(winners)
     _round = {
         1: [winners[0], winners[1]],
         2: [winners[2], winners[3]],
@@ -319,9 +311,33 @@ def plot_df(df):
         )
 
 
-def get_bracket():
+def get_last_games():
     bracket_link = "http://www.espn.com/mens-college-basketball/tournament/bracket"
     espn = requests.get(bracket_link)
+    espnSoup = bs(espn.text)
+
+    team_stats_list = []
+    for link in espnSoup.findAll("a"):
+        if link.get("title"):
+            r = requests.get(link.get("href"), verify=False)
+            soup = bs(r.text)
+            teams = soup.find_all(
+                "div", {"class": "Schedule__Meta flex ttu items-end h9"}
+            )
+            lastgames = []
+            team_stats = {}
+            for team in teams:
+                lastgames.append(str(team).split("</")[0].split(">")[2])
+                team_stats["wl"] = lastgames
+                team_stats["name"] = link.get("title")
+                team_stats["id"] = link.get("href").split("id/")[1]
+            team_stats_list.append(team_stats)
+    return team_stats_list
+
+
+def get_bracket():
+    bracket_link = "http://www.espn.com/mens-college-basketball/tournament/bracket"
+    espn = requests.get(bracket_link, verify=False)
     soup = bs(espn.text)
     teams = []
     for link in soup.findAll("a"):
@@ -338,3 +354,16 @@ def bracket_form(teams):
     south = teams[36:52]
     midwest = teams[52:68]
     return first_four, west, east, south, midwest
+
+
+def get_bracket_new():
+    df = pd.read_csv("fivethirtyeight_ncaa_forecasts.csv")
+    current_year = datetime.datetime.now().year
+    current_df = df[df.forecast_date > f"{current_year}-03-12"]
+
+    west = current_df[current_df.team_region == "West"]['team_name']
+    east = current_df[current_df.team_region == "East"]['team_name']
+
+    south = current_df[current_df.team_region == "South"]['team_name']
+    midwest = current_df[current_df.team_region == "Midwest"]['team_name']
+    return west.to_list(), east.to_list(), south.to_list(), midwest.to_list()

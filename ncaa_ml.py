@@ -16,6 +16,7 @@ import logging
 import argparse
 from sklearn.utils import shuffle
 from sklearn.ensemble import RandomForestClassifier as rf
+import random
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -95,7 +96,6 @@ def matchupwinner(region_, roundnum, bracket=firstround):
             teams = []
             teams.append(matchup1)
             teams.append(matchup2)
-            print(teams)
             newdf = df.drop(teams)
             """
             x = newdf.drop(columns = 'Rk')
@@ -105,10 +105,10 @@ def matchupwinner(region_, roundnum, bracket=firstround):
             d = df[df.index == teams[0]].drop(columns=["Rk", "Region"])
             n = df[df.index == teams[1]].drop(columns=["Rk", "Region"])
             if clf.predict(d) < clf.predict(n):
-                logging.info(teams[0])
+                # logging.info(teams[0])
                 winners.append(teams[0])
             else:
-                logging.info(teams[1])
+                # logging.info(teams[1])
                 winners.append(teams[1])
     # logging.info(gnb.predict(d),gnb.predict(n))
     return winners
@@ -154,12 +154,15 @@ def preprocess(df, current=False):
         le.fit(df.Region)
         df.Region = le.transform(df.Region)
     df.drop(columns=["Conf", "W-L"], inplace=True)
+    if "WL" in df.columns:
+        df.drop(columns=["WL"], inplace=True)
     df.set_index("Team", inplace=True)
     df["Random_Bias"] = (
         np.random.randint(low=50, high=500, size=df.shape[0])
         + (df.Rk) * RISK_FACTOR * 1
     )
-
+    # if "WL_NUM" not in df.columns:
+    #    df["WL_NUM"] = random.uniform(0, 1)
     df.Seed.replace("\*", "", regex=True, inplace=True)
     df = shuffle(df)
 
@@ -191,7 +194,7 @@ if __name__ == "__main__":
     datadf = preprocess(datadf)
     df = pd.read_csv(f"data/kenpom_current_data.csv")
     # df = pd.read_csv(f"data/kenpom_data.csv")
-
+    df.Team = [x.replace("amp;", "") for x in list(df.Team)]
     df.Team = [x.replace("amp;M;", "M") for x in list(df.Team)]
     newdf = pd.DataFrame()
     for i in range(1, 17):
@@ -202,10 +205,11 @@ if __name__ == "__main__":
     clf = rf_clf
     # gnb = GaussianNB()
     # logging.info(regionalpha, region_word)
-    logging.info(df)
     num_champs = []
     num_finalfour = []
     # init round construction
+
+    print(df)
     firstround = utils.construct1stround(df)
     for i in tqdm(range(1, NUM_SIMS)):
         inc = i
@@ -302,11 +306,11 @@ if __name__ == "__main__":
     if plots:
         utils.plot_df(df)
 
-        #compare = df[(df.index == "UCLA")]
-        #print(compare)
-        #compare = df[(df.index == "UCLA") | (df.index == "Alabama")]
-        #print(compare)
-        #utils.plot_df(compare)
+        # compare = df[(df.index == "UCLA")]
+        # print(compare)
+        # compare = df[(df.index == "UCLA") | (df.index == "Alabama")]
+        # print(compare)
+        # utils.plot_df(compare)
         plt.figure(0)
         sns.barplot(data=df_count, x="team", y="count").set(title="final")
         plt.figure(6)
